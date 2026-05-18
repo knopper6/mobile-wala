@@ -18,6 +18,7 @@
       </a>
       <nav class="nav-actions">
         <a class="btn" href="/">Auction Front Page</a>
+        <button class="btn" id="changePwdBtn" type="button">🔑 Change Password</button>
         <button class="btn danger" id="logoutBtn" type="button">Logout</button>
       </nav>
     </header>
@@ -207,6 +208,51 @@
       </div>
     </section>
   </main>
+
+  <!-- Admin Password Change Modal -->
+  <div class="modal" id="pwdModal">
+    <div class="modal-panel">
+      <h3>🔑 Change Admin Password</h3>
+      <form id="pwdForm">
+        <div class="field">
+          <label for="pwdCurrent">Current Password</label>
+          <input id="pwdCurrent" type="password" required>
+        </div>
+        <div class="field">
+          <label for="pwdNew">New Password</label>
+          <input id="pwdNew" type="password" minlength="6" required>
+        </div>
+        <div class="field">
+          <label for="pwdConfirm">Confirm New Password</label>
+          <input id="pwdConfirm" type="password" minlength="6" required>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn primary" type="submit">Update Password</button>
+          <button class="btn" type="button" id="pwdCloseBtn">Cancel</button>
+        </div>
+      </form>
+      <p class="status-line" id="pwdStatus"></p>
+    </div>
+  </div>
+
+  <!-- Reseller Password Reset Modal -->
+  <div class="modal" id="resetPwdModal">
+    <div class="modal-panel">
+      <h3>🔑 Reset Reseller Password</h3>
+      <p id="resetPwdInfo" style="color:var(--muted);margin-bottom:12px"></p>
+      <form id="resetPwdForm">
+        <div class="field">
+          <label for="resetPwdNew">New Password</label>
+          <input id="resetPwdNew" type="password" minlength="6" required>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn primary" type="submit">Reset Password</button>
+          <button class="btn" type="button" id="resetPwdCloseBtn">Cancel</button>
+        </div>
+      </form>
+      <p class="status-line" id="resetPwdStatus"></p>
+    </div>
+  </div>
 
   <script src="/admin.js"></script>
 </body>

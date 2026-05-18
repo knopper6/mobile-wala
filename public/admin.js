@@ -20,6 +20,16 @@ const els = {
   resellerRefreshBtn: document.querySelector("#resellerRefreshBtn"),
   pendingResellers: document.querySelector("#pendingResellers"),
   logoutBtn: document.querySelector("#logoutBtn"),
+  changePwdBtn: document.querySelector("#changePwdBtn"),
+  pwdModal: document.querySelector("#pwdModal"),
+  pwdForm: document.querySelector("#pwdForm"),
+  pwdStatus: document.querySelector("#pwdStatus"),
+  pwdCloseBtn: document.querySelector("#pwdCloseBtn"),
+  resetPwdModal: document.querySelector("#resetPwdModal"),
+  resetPwdForm: document.querySelector("#resetPwdForm"),
+  resetPwdInfo: document.querySelector("#resetPwdInfo"),
+  resetPwdStatus: document.querySelector("#resetPwdStatus"),
+  resetPwdCloseBtn: document.querySelector("#resetPwdCloseBtn"),
   lotCount: document.querySelector("#adminLotCount"),
   activeCount: document.querySelector("#adminActiveCount"),
   pendingCount: document.querySelector("#adminPendingCount")
@@ -191,7 +201,8 @@ function resellerCard(reseller) {
         <h3>${reseller.companyName}</h3>
         <p>${reseller.displayName} · ${reseller.email} · ${reseller.phone}</p>
       </div>
-      <div class="reseller-actions">
+      <div class="reseller-actions" style="flex-wrap:wrap;gap:6px">
+        <button class="btn" type="button" data-reseller-pwd="${reseller.id}" data-name="${reseller.displayName}" data-email="${reseller.email}">Reset Pwd</button>
         <button class="btn primary" type="button" data-reseller-status="${reseller.id}" data-status="active">Approve</button>
         <button class="btn danger" type="button" data-reseller-status="${reseller.id}" data-status="suspended">Reject</button>
       </div>
@@ -375,6 +386,76 @@ document.addEventListener("click", async (event) => {
     button.disabled = false;
   }
 });
+/* ---------- Admin change password ---------- */
+
+els.changePwdBtn.addEventListener("click", () => {
+  els.pwdModal.classList.add("open");
+});
+
+els.pwdCloseBtn.addEventListener("click", () => {
+  els.pwdModal.classList.remove("open");
+});
+
+els.pwdModal.addEventListener("click", (e) => {
+  if (e.target === els.pwdModal) els.pwdModal.classList.remove("open");
+});
+
+els.pwdForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const current = document.querySelector("#pwdCurrent").value;
+  const pw = document.querySelector("#pwdNew").value;
+  const confirm = document.querySelector("#pwdConfirm").value;
+
+  if (pw !== confirm) {
+    setStatus(els.pwdStatus, "Passwords do not match", "error");
+    return;
+  }
+
+  setStatus(els.pwdStatus, "Updating...");
+  try {
+    await api("/api/admin/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ currentPassword: current, newPassword: pw })
+    });
+    setStatus(els.pwdStatus, "Password updated!", "ok");
+    els.pwdForm.reset();
+    setTimeout(() => els.pwdModal.classList.remove("open"), 1200);
+  } catch (err) {
+    setStatus(els.pwdStatus, err.message, "error");
+  }
+});
+
+/* ---------- Reseller password reset ---------- */
+
+let resetResellerId = null;
+
+els.resetPwdCloseBtn.addEventListener("click", () => {
+  els.resetPwdModal.classList.remove("open");
+});
+
+els.resetPwdModal.addEventListener("click", (e) => {
+  if (e.target === els.resetPwdModal) els.resetPwdModal.classList.remove("open");
+});
+
+els.resetPwdForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const pw = document.querySelector("#resetPwdNew").value;
+  if (!resetResellerId) return;
+
+  setStatus(els.resetPwdStatus, "Resetting...");
+  try {
+    await api(`/api/admin/resellers/${resetResellerId}/password`, {
+      method: "PATCH",
+      body: JSON.stringify({ newPassword: pw })
+    });
+    setStatus(els.resetPwdStatus, "Password reset!", "ok");
+    els.resetPwdForm.reset();
+    setTimeout(() => els.resetPwdModal.classList.remove("open"), 1200);
+  } catch (err) {
+    setStatus(els.resetPwdStatus, err.message, "error");
+  }
+});
+
 els.logoutBtn.addEventListener("click", () => {
   localStorage.removeItem(tokenKey);
   localStorage.removeItem(userKey);
