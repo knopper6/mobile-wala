@@ -210,16 +210,6 @@ const updateResellerStatus = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = {
-  createResellerByAdmin,
-  getResellerProfile,
-  listResellers,
-  updateResellerStatus,
-  updateAdminProfile,
-  updateResellerByAdmin,
-  resetResellerPassword
-};
-
 /* ───── Admin self‑update ───── */
 
 const updateAdminProfile = asyncHandler(async (req, res) => {
@@ -434,3 +424,13 @@ function profileRow(r) {
     monthlyVolumeEstimate: r.monthly_volume_estimate
   };
 }
+
+module.exports = {
+  createResellerByAdmin,
+  getResellerProfile,
+  listResellers,
+  updateResellerStatus,
+  updateAdminProfile,
+  updateResellerByAdmin,
+  resetResellerPassword
+};
