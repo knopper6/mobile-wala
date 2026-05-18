@@ -153,7 +153,7 @@ function loginModal() {
       </div>
       <div class="field">
         <label for="modalLoginPassword">Password</label>
-        <input id="modalLoginPassword" type="password" value="MobileWala@123" required>
+        <input id="modalLoginPassword" type="password" required>
       </div>
       <button class="btn primary block" type="submit">Login</button>
       <p class="status-line" id="modalStatus"></p>
@@ -240,7 +240,7 @@ document.addEventListener("click", (event) => {
   const demo = event.target.closest("[data-demo]");
   if (demo) {
     document.querySelector("#loginName").value = demo.dataset.demo;
-    document.querySelector("#password").value = "MobileWala@123";
+    document.querySelector("#password").value = "";
   }
 
   const bidNow = event.target.closest("[data-bid-now]");

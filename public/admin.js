@@ -282,7 +282,7 @@ els.resellerForm.addEventListener("submit", async (event) => {
       body: JSON.stringify(payload)
     });
     event.target.reset();
-    document.querySelector("#resellerPassword").value = "MobileWala@123";
+    document.querySelector("#resellerPassword").value = "";
     document.querySelector("#resellerStatus").value = "active";
     setStatus(els.resellerFormStatus, "Reseller added", "ok");
     await loadResellers();
