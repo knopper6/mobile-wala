@@ -214,5 +214,223 @@ module.exports = {
   createResellerByAdmin,
   getResellerProfile,
   listResellers,
-  updateResellerStatus
+  updateResellerStatus,
+  updateAdminProfile,
+  updateResellerByAdmin,
+  resetResellerPassword
 };
+
+/* ───── Admin self‑update ───── */
+
+const updateAdminProfile = asyncHandler(async (req, res) => {
+  const { rows: [user] } = await query(
+    "SELECT id, email, password_hash, role, status, display_name, company_name, phone FROM users WHERE id = $1",
+    [req.user.id]
+  );
+
+  const updates = [];
+  const values = [];
+  let idx = 0;
+
+  if (req.body.email && req.body.email !== user.email) {
+    const { rows: dup } = await query(
+      "SELECT id FROM users WHERE lower(email) = lower($1) AND id <> $2",
+      [req.body.email, user.id]
+    );
+    if (dup.length) throw new AppError("Email already in use", 409);
+
+    idx += 1;
+    updates.push(`email = $${idx}`);
+    values.push(req.body.email.toLowerCase());
+  }
+
+  if (req.body.currentPassword && req.body.newPassword) {
+    const pwOk = await bcrypt.compare(req.body.currentPassword, user.password_hash);
+    if (!pwOk) throw new AppError("Current password is incorrect", 403);
+
+    if (req.body.newPassword.length < 6) {
+      throw new AppError("New password must be at least 6 characters", 422);
+    }
+
+    idx += 1;
+    updates.push(`password_hash = $${idx}`);
+    values.push(await bcrypt.hash(req.body.newPassword, 12));
+  }
+
+  if (!updates.length) {
+    throw new AppError("Nothing to update", 422);
+  }
+
+  idx += 1;
+  values.push(user.id);
+
+  const { rows } = await query(
+    `UPDATE users SET ${updates.join(", ")}, updated_at = NOW()
+      WHERE id = $${idx}
+      RETURNING id, email, role, status, display_name, company_name, phone`,
+    values
+  );
+
+  res.json({ user: publicUserProfile(rows[0]) });
+});
+
+/* ───── Admin edits reseller ───── */
+
+const updateResellerByAdmin = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const { rows: target } = await query(
+    "SELECT id, role FROM users WHERE id = $1",
+    [id]
+  );
+  if (!target[0] || target[0].role !== "reseller") {
+    throw notFound("Reseller");
+  }
+
+  const userUpdates = {};
+  const userValues = [];
+  const profileUpdates = {};
+  const profileValues = [];
+  let ui = 0;
+  let pi = 0;
+
+  /* user-level fields */
+  const userFields = ["email", "displayName", "companyName", "phone"];
+  for (const f of userFields) {
+    if (req.body[f] !== undefined) {
+      const col = { email: "email", displayName: "display_name", companyName: "company_name", phone: "phone" }[f];
+      ui += 1;
+      userUpdates[col] = `$${ui}`;
+      userValues.push(f === "email" ? req.body[f].toLowerCase() : req.body[f]);
+    }
+  }
+
+  /* profile-level fields */
+  const profileMap = {
+    gstOrTaxId: "gst_or_tax_id",
+    businessAddress: "business_address",
+    city: "city",
+    state: "state",
+    country: "country",
+    postalCode: "postal_code",
+    preferredBrands: "preferred_brands",
+    monthlyVolumeEstimate: "monthly_volume_estimate"
+  };
+
+  for (const [bodyKey, col] of Object.entries(profileMap)) {
+    if (req.body[bodyKey] !== undefined) {
+      pi += 1;
+      profileUpdates[col] = `$${pi}`;
+      const val = bodyKey === "preferredBrands" && Array.isArray(req.body[bodyKey])
+        ? req.body[bodyKey]
+        : req.body[bodyKey];
+      profileValues.push(val ?? null);
+    }
+  }
+
+  let userResult;
+  await withTransaction(async (client) => {
+    /* update user table */
+    if (Object.keys(userUpdates).length) {
+      const setClauses = Object.entries(userUpdates).map(([col, ph]) => `${col} = ${ph}`);
+      ui += 1;
+      userValues.push(id);
+      const { rows } = await client.query(
+        `UPDATE users SET ${setClauses.join(", ")}, updated_at = NOW()
+          WHERE id = $${ui}
+          RETURNING id, email, role, status, display_name, company_name, phone`,
+        userValues
+      );
+      userResult = rows[0];
+    } else {
+      const { rows } = await client.query(
+        "SELECT id, email, role, status, display_name, company_name, phone FROM users WHERE id = $1",
+        [id]
+      );
+      userResult = rows[0];
+    }
+
+    /* update profile table */
+    if (Object.keys(profileUpdates).length) {
+      const setClauses = Object.entries(profileUpdates).map(([col, ph]) => `${col} = ${ph}`);
+      pi += 1;
+      profileValues.push(id);
+      await client.query(
+        `UPDATE reseller_profiles SET ${setClauses.join(", ")} WHERE user_id = $${pi}`,
+        profileValues
+      );
+    }
+  });
+
+  const profile = await query(
+    `SELECT * FROM reseller_profiles WHERE user_id = $1`,
+    [id]
+  );
+
+  res.json({
+    reseller: {
+      id: Number(userResult.id),
+      email: userResult.email,
+      role: userResult.role,
+      status: userResult.status,
+      displayName: userResult.display_name,
+      companyName: userResult.company_name,
+      phone: userResult.phone,
+      profile: profile.rows[0] ? profileRow(profile.rows[0]) : null
+    }
+  });
+});
+
+/* ───── Admin resets reseller password ───── */
+
+const resetResellerPassword = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 6) {
+    throw new AppError("newPassword must be at least 6 characters", 422);
+  }
+
+  const { rows } = await query(
+    "SELECT id, role FROM users WHERE id = $1",
+    [id]
+  );
+  if (!rows[0] || rows[0].role !== "reseller") {
+    throw notFound("Reseller");
+  }
+
+  const hash = await bcrypt.hash(newPassword, 12);
+  await query(
+    "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2",
+    [hash, id]
+  );
+
+  res.json({ message: "Password updated" });
+});
+
+/* ───── helpers ───── */
+
+function publicUserProfile(user) {
+  return {
+    id: Number(user.id),
+    email: user.email,
+    role: user.role,
+    status: user.status,
+    displayName: user.display_name,
+    companyName: user.company_name,
+    phone: user.phone
+  };
+}
+
+function profileRow(r) {
+  return {
+    gstOrTaxId: r.gst_or_tax_id,
+    businessAddress: r.business_address,
+    city: r.city,
+    state: r.state,
+    country: r.country,
+    postalCode: r.postal_code,
+    preferredBrands: r.preferred_brands,
+    monthlyVolumeEstimate: r.monthly_volume_estimate
+  };
+}
