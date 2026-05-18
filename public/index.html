@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MobileWala Auctions</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/">
+        <div class="brand-mark">MW</div>
+        <div>
+          <h1><span>Mobile</span>Wala Auctions</h1>
+          <p>Wholesale refurbished phone lots</p>
+        </div>
+      </a>
+      <nav class="nav-actions">
+        <button class="btn primary" id="signupCta" type="button">Sign Up</button>
+        <button class="btn gold" id="loginCta" type="button">Login</button>
+        <a class="btn gold" href="/admin">Admin Panel</a>
+        <a class="btn" href="/api">API Index</a>
+        <button class="btn danger" id="logoutBtn" type="button">Logout</button>
+      </nav>
+    </header>
+
+    <section class="hero-strip">
+      <div class="summary-panel">
+        <div class="eyebrow"><span class="pulse"></span> Live reseller desk</div>
+        <h2>Text lots, clean bids, no image clutter.</h2>
+        <p>Browse active refurbished mobile phone lots by series, storage, color indicator, quantity, grade, current bid, and end time.</p>
+        <div class="metrics">
+          <div class="metric"><strong id="lotCount">0</strong><span>Active lots</span></div>
+          <div class="metric"><strong id="unitCount">0</strong><span>Total units</span></div>
+          <div class="metric"><strong id="bidCount">0</strong><span>Tracked bids</span></div>
+        </div>
+      </div>
+
+      <aside class="login-panel">
+        <h3>Reseller Access</h3>
+        <p>Everyone can view live lots. Sign in only when you are ready to bid. Use reseller name/company and password.</p>
+        <form id="loginForm">
+          <div class="field">
+            <label for="loginName">Name or Company</label>
+            <input id="loginName" name="loginName" type="text" autocomplete="name" value="KK Mobiles" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" value="MobileWala@123" required>
+          </div>
+          <button class="btn primary block" type="submit">Enter Auction Desk</button>
+        </form>
+        <div class="demo-row">
+          <button class="btn" type="button" data-demo="KK Mobiles">KK Mobiles</button>
+          <button class="btn" type="button" data-demo="Metro Phones LLC">Metro Phones</button>
+        </div>
+        <button class="btn gold block" id="inlineSignupBtn" type="button">Create reseller account</button>
+        <p class="status-line" id="loginStatus"></p>
+      </aside>
+    </section>
+
+    <section>
+      <div class="toolbar">
+        <div>
+          <h2>Active Auction Lots</h2>
+          <p>Lots are generated as typography-first listings with color indicators and grade labels.</p>
+        </div>
+        <button class="btn primary" id="refreshBtn" type="button">Refresh Lots</button>
+      </div>
+      <div class="lot-grid" id="lots"></div>
+    </section>
+  </main>
+
+  <div class="modal" id="actionModal" aria-hidden="true">
+    <div class="modal-panel">
+      <button class="modal-close" type="button" data-close-modal>×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

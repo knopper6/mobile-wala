@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MobileWala Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/">
+        <div class="brand-mark">MW</div>
+        <div>
+          <h1><span>Admin</span> Auction Control</h1>
+          <p>Create lots, set auction dates, prices, grades, and variants</p>
+        </div>
+      </a>
+      <nav class="nav-actions">
+        <a class="btn" href="/">Auction Front Page</a>
+        <button class="btn danger" id="logoutBtn" type="button">Logout</button>
+      </nav>
+    </header>
+
+    <section class="hero-strip">
+      <div class="summary-panel">
+        <div class="eyebrow"><span class="pulse"></span> Admin workspace</div>
+        <h2>Add wholesale lots in minutes.</h2>
+        <p>Enter the series once, then add storage and color rows with quantities. Publish as active now, schedule it, keep as draft, or close it later.</p>
+        <div class="metrics">
+          <div class="metric"><strong id="adminLotCount">0</strong><span>Total lots</span></div>
+          <div class="metric"><strong id="adminActiveCount">0</strong><span>Active</span></div>
+          <div class="metric"><strong id="adminPendingCount">0</strong><span>Pending approvals</span></div>
+        </div>
+      </div>
+
+      <aside class="login-panel">
+        <h3>Admin Login</h3>
+        <p>Seed admin: <strong>admin@mobilewala.com</strong> with password <strong>MobileWala@123</strong>.</p>
+        <form id="adminLoginForm">
+          <div class="field">
+            <label for="adminEmail">Email</label>
+            <input id="adminEmail" type="email" value="admin@mobilewala.com" required>
+          </div>
+          <div class="field">
+            <label for="adminPassword">Password</label>
+            <input id="adminPassword" type="password" value="MobileWala@123" required>
+          </div>
+          <button class="btn primary block" type="submit">Open Admin Panel</button>
+        </form>
+        <p class="status-line" id="adminLoginStatus"></p>
+      </aside>
+    </section>
+
+    <section class="reseller-admin-grid">
+      <form class="admin-panel" id="resellerForm">
+        <h2>Add Reseller</h2>
+        <p class="hint">Admin-created resellers can be activated immediately.</p>
+        <div class="form-grid">
+          <div class="field">
+            <label for="resellerName">Name</label>
+            <input id="resellerName" required>
+          </div>
+          <div class="field">
+            <label for="resellerCompany">Company</label>
+            <input id="resellerCompany" required>
+          </div>
+          <div class="field">
+            <label for="resellerEmail">Email</label>
+            <input id="resellerEmail" type="email" required>
+          </div>
+          <div class="field">
+            <label for="resellerPhone">Phone</label>
+            <input id="resellerPhone" required>
+          </div>
+          <div class="field">
+            <label for="resellerPassword">Password</label>
+            <input id="resellerPassword" type="password" minlength="8" value="MobileWala@123" required>
+          </div>
+          <div class="field">
+            <label for="resellerStatus">Status</label>
+            <select id="resellerStatus">
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn primary block" type="submit">Add Reseller</button>
+        <p class="status-line" id="resellerFormStatus"></p>
+      </form>
+
+      <div class="admin-panel">
+        <div class="toolbar" style="margin-top:0">
+          <div>
+            <h2>Pending Approvals</h2>
+            <p>Public signups wait here until admin approval.</p>
+          </div>
+          <button class="btn primary" id="resellerRefreshBtn" type="button">Refresh</button>
+        </div>
+        <div class="reseller-list" id="pendingResellers"></div>
+      </div>
+    </section>
+
+    <section class="admin-layout">
+      <form class="admin-panel" id="lotForm">
+        <h2>Create Auction Lot</h2>
+        <p class="hint">No product images. Each lot is shown as a structured text listing.</p>
+
+        <div class="lot-stepper" aria-label="Create lot steps">
+          <button class="step-tab active" type="button" data-step-tab="1">1 Details</button>
+          <button class="step-tab" type="button" data-step-tab="2">2 Pricing</button>
+          <button class="step-tab" type="button" data-step-tab="3">3 Variants</button>
+        </div>
+
+        <div class="form-step active" data-step="1">
+          <div class="step-heading">
+            <h3>Lot Details</h3>
+            <p>Set the public title, series, grade, and auction status.</p>
+          </div>
+          <div class="form-grid">
+            <div class="field wide">
+              <label for="title">Lot Title</label>
+              <input id="title" value="IPHONE 14 PRO SERIES HYLA A+ & DNA" required>
+            </div>
+            <div class="field">
+              <label for="series">Series</label>
+              <input id="series" value="iPhone 14 Pro Series" required>
+            </div>
+            <div class="field">
+              <label for="gradeLabel">Grade Label</label>
+              <input id="gradeLabel" value="HYLA A+ & DNA" required>
+            </div>
+            <div class="field">
+              <label for="status">Status</label>
+              <select id="status">
+              <option value="active">Active</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="draft">Draft</option>
+              <option value="sold">Sold</option>
+              <option value="closed">Closed</option>
+            </select>
+            </div>
+            <div class="field">
+              <label for="currency">Currency</label>
+              <select id="currency">
+                <option value="USD">USD</option>
+                <option value="INR">INR</option>
+              </select>
+            </div>
+            <div class="field wide">
+              <label for="description">Description</label>
+              <textarea id="description">Text-only wholesale auction lot for refurbished mobile inventory.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-step" data-step="2">
+          <div class="step-heading">
+            <h3>Pricing & Timeline</h3>
+            <p>Set defaults for the lot. Variant rows can still use their own price and increment.</p>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="startingBid">Default Starting Price</label>
+              <input id="startingBid" type="number" min="1" step="1" value="125000" required>
+            </div>
+            <div class="field">
+              <label for="bidIncrement">Default Increment</label>
+              <input id="bidIncrement" type="number" min="1" step="1" value="500" required>
+            </div>
+            <div class="field">
+              <label for="startsAt">Start Date</label>
+              <input id="startsAt" type="datetime-local" required>
+            </div>
+            <div class="field">
+              <label for="endsAt">End Date</label>
+              <input id="endsAt" type="datetime-local" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-step" data-step="3">
+          <div class="step-heading">
+            <h3>Variants</h3>
+            <p>Each storage/color row is its own sellable auction item.</p>
+          </div>
+          <div class="variant-editor" id="variantEditor"></div>
+          <button class="btn" id="addVariantBtn" type="button">Add Variant Row</button>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn" id="prevStepBtn" type="button">Back</button>
+          <button class="btn gold" id="nextStepBtn" type="button">Next</button>
+          <button class="btn primary" id="createLotBtn" type="submit">Create Lot</button>
+        </div>
+        <p class="status-line" id="formStatus"></p>
+      </form>
+
+      <div>
+        <div class="toolbar" style="margin-top:0">
+          <div>
+            <h2>All Lots</h2>
+            <p>Admin view includes draft, scheduled, active, closed, and cancelled lots.</p>
+          </div>
+          <button class="btn primary" id="adminRefreshBtn" type="button">Refresh</button>
+        </div>
+        <div class="lot-grid" id="adminLots"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/admin.js"></script>
+</body>
+</html>
